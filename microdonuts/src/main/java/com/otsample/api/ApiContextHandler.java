@@ -14,43 +14,43 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.otsample.api.resources.*;
 
-public class ApiContextHandler extends ServletContextHandler
-{
+public class ApiContextHandler extends ServletContextHandler {
     Properties config;
     KitchenConsumer kitchenConsumer;
 
-    public ApiContextHandler(Properties config)
-    {
+    public ApiContextHandler(Properties config) {
         this.config = config;
         registerServlets();
     }
 
-    void registerServlets()
-    {
+    void registerServlets() {
         kitchenConsumer = new KitchenConsumer();
         addServlet(new ServletHolder(new OrderServlet(kitchenConsumer)), "/order");
         addServlet(new ServletHolder(new StatusServlet(kitchenConsumer)), "/status");
         addServlet(new ServletHolder(new ConfigServlet(config)), "/config.js");
     }
 
-    static final class OrderServlet extends HttpServlet
-    {
+    static final class OrderServlet extends HttpServlet {
         KitchenConsumer kitchenConsumer;
 
-        public OrderServlet(KitchenConsumer kitchenConsumer)
-        {
+        public OrderServlet(KitchenConsumer kitchenConsumer) {
             this.kitchenConsumer = kitchenConsumer;
         }
 
         @Override
         public void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
-        {
+                throws ServletException, IOException {
+
+            Span orderSpan = GlobalTracer.get().buildSpan("order_span").start();
+            request.setAttribute("span", orderSpan);
+
             DonutRequest[] donutsInfo = parseDonutsInfo(request);
             if (donutsInfo == null) {
                 Utils.writeErrorResponse(response);
@@ -73,11 +73,11 @@ public class ApiContextHandler extends ServletContextHandler
             }
 
             Utils.writeJSON(response, statusRes);
+            orderSpan.finish();
         }
 
         static DonutRequest[] parseDonutsInfo(HttpServletRequest request)
-            throws IOException
-        {
+                throws IOException {
             JsonObject jsonObj = Utils.readJSONObject(request);
             JsonArray donuts = jsonObj.getAsJsonArray("donuts");
             if (donuts == null || donuts.size() == 0)
@@ -98,19 +98,16 @@ public class ApiContextHandler extends ServletContextHandler
         }
     }
 
-    static final class StatusServlet extends HttpServlet
-    {
+    static final class StatusServlet extends HttpServlet {
         KitchenConsumer kitchenConsumer;
 
-        public StatusServlet(KitchenConsumer kitchenConsumer)
-        {
+        public StatusServlet(KitchenConsumer kitchenConsumer) {
             this.kitchenConsumer = kitchenConsumer;
         }
 
         @Override
         public void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
-        {
+                throws ServletException, IOException {
             StatusReq statusReq = (StatusReq) Utils.readJSON(request, StatusReq.class);
             if (statusReq == null) {
                 Utils.writeErrorResponse(response);
@@ -122,33 +119,29 @@ public class ApiContextHandler extends ServletContextHandler
         }
     }
 
-    static final class ConfigServlet extends HttpServlet
-    {
+    static final class ConfigServlet extends HttpServlet {
         Properties config;
 
-        public ConfigServlet(Properties config)
-        {
+        public ConfigServlet(Properties config) {
             this.config = config;
         }
 
         @Override
         public void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
-        {
+                throws ServletException, IOException {
             PrintWriter writer = response.getWriter();
             writer.println(createConfigBody());
             writer.close();
         }
 
-        String createConfigBody ()
-        {
+        String createConfigBody() {
             String body = ""
-                + "var Config = {"
-                + "    tracer: \"%s\","
-                + "    tracer_host: \"%s\","
-                + "    tracer_port: %s,"
-                + "    tracer_access_token: \"%s\","
-                + "}";
+                    + "var Config = {"
+                    + "    tracer: \"%s\","
+                    + "    tracer_host: \"%s\","
+                    + "    tracer_port: %s,"
+                    + "    tracer_access_token: \"%s\","
+                    + "}";
 
             return String.format(body,
                     config.getProperty("tracer"),

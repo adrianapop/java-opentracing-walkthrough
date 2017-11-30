@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import io.opentracing.Span;
+import io.opentracing.contrib.okhttp3.TagWrapper;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -16,26 +18,25 @@ import okhttp3.Response;
 
 import com.otsample.api.resources.*;
 
-public class KitchenConsumer
-{
+public class KitchenConsumer {
     OkHttpClient client;
     MediaType jsonType;
 
-    public KitchenConsumer()
-    {
+    public KitchenConsumer() {
         client = new OkHttpClient.Builder().build();
         jsonType = MediaType.parse("application/json");
     }
 
-    public boolean addDonut(HttpServletRequest request, String orderId)
-    {
+    public boolean addDonut(HttpServletRequest request, String orderId) {
         DonutAddRequest donutReq = new DonutAddRequest(orderId);
         RequestBody body = RequestBody.create(jsonType, Utils.toJSON(donutReq));
 
+        Span parentSpan = (Span) request.getAttribute("span");
         Request req = new Request.Builder()
-            .url("http://127.0.0.1:10001/kitchen/add_donut")
-            .post(body)
-            .build();
+                .url("http://127.0.0.1:10001/kitchen/add_donut")
+                .post(body)
+                .tag(new TagWrapper(parentSpan.context()))
+                .build();
 
 
         Response res = null;
@@ -49,11 +50,10 @@ public class KitchenConsumer
         return res.code() >= 200 && res.code() < 300;
     }
 
-    public Collection<Donut> getDonuts(HttpServletRequest request)
-    {
+    public Collection<Donut> getDonuts(HttpServletRequest request) {
         Request req = new Request.Builder()
-            .url("http://127.0.0.1:10001/kitchen/check_donuts")
-            .build();
+                .url("http://127.0.0.1:10001/kitchen/check_donuts")
+                .build();
 
         String body = null;
         try {
@@ -67,26 +67,26 @@ public class KitchenConsumer
         }
 
         Gson gson = new Gson();
-        Type collType = new TypeToken<Collection<Donut>>(){}.getType();
+        Type collType = new TypeToken<Collection<Donut>>() {
+        }.getType();
         return gson.fromJson(body, collType);
     }
 
-    public StatusRes checkStatus(HttpServletRequest request, String orderId)
-    {
+    public StatusRes checkStatus(HttpServletRequest request, String orderId) {
         Collection<Donut> donuts = getDonuts(request);
         if (donuts == null)
             return null;
 
         ArrayList<Donut> filtered = new ArrayList<Donut>();
 
-        for (Donut donut: donuts)
+        for (Donut donut : donuts)
             if (donut.getOrderId().equals(orderId))
                 filtered.add(donut);
 
         Status status = Status.READY;
         int estimatedTime = 0;
 
-        for (Donut donut: filtered) {
+        for (Donut donut : filtered) {
             switch (donut.getStatus()) {
                 case NEW_ORDER:
                     estimatedTime += 3;
