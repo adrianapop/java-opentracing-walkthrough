@@ -49,6 +49,7 @@ public class ApiContextHandler extends ServletContextHandler {
 
             Span orderSpan = GlobalTracer.get().buildSpan("order_span").start();
             request.setAttribute("span", orderSpan);
+            System.err.println("###### Ordering some donuts");
 
             DonutRequest[] donutsInfo = parseDonutsInfo(request);
             if (donutsInfo == null) {

@@ -44,6 +44,7 @@ public class KitchenContextHandler extends ServletContextHandler {
         @Override
         public void doPost(HttpServletRequest request, HttpServletResponse response)
                 throws ServletException, IOException {
+            System.err.println("############# Received a few donut requests ");
             DonutAddRequest addDonut = (DonutAddRequest) Utils.readJSON(request, DonutAddRequest.class);
             if (addDonut == null || addDonut.getOrderId() == null) {
                 Utils.writeErrorResponse(response);

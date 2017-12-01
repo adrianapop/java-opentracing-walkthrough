@@ -22,6 +22,9 @@ import java.net.MalformedURLException;
 import java.util.Properties;
 
 public class App {
+
+    public static final String PATH = "/Users/adriana.pop/Projects/RE/java-opentracing-walkthrough/";
+
     public static void main(String[] args)
             throws Exception {
         Properties config = loadConfig(args);
@@ -29,7 +32,7 @@ public class App {
             throw new Exception("Could not configure the global tracer");
 
         ResourceHandler filesHandler = new ResourceHandler();
-        filesHandler.setWelcomeFiles(new String[]{"./index.html"});
+        filesHandler.setWelcomeFiles(new String[]{PATH + "client/index.html"});
         filesHandler.setResourceBase(config.getProperty("public_directory"));
 
         ContextHandler fileCtxHandler = new ContextHandler();
@@ -51,7 +54,7 @@ public class App {
 
     static Properties loadConfig(String[] args)
             throws IOException {
-        String file = "/Users/adriana.pop/Projects/RE/java-opentracing-walkthrough/microdonuts/tracer_config.properties";
+        String file = PATH + "microdonuts/tracer_config.properties";
         if (args.length > 0)
             file = args[0];
 
