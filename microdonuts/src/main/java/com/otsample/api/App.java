@@ -24,7 +24,10 @@ import zipkin.reporter.okhttp3.OkHttpSender;
 
 public class App
 {
-    public static void main( String[] args )
+
+    public static final String CONFIG_PATH = "/Users/adriana.pop/Projects/RE/java-opentracing-walkthrough/microdonuts/tracer_config.properties";
+
+    public static void main(String[] args )
         throws Exception
     {
         Properties config = loadConfig(args);
@@ -55,7 +58,7 @@ public class App
     static Properties loadConfig(String [] args)
         throws IOException
     {
-        String file = "tracer_config.properties";
+        String file = CONFIG_PATH;
         if (args.length > 0)
             file = args[0];
 
