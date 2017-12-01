@@ -1,22 +1,20 @@
 package com.otsample.api;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.*;
-
-import javax.servlet.http.HttpServletRequest;
-
-import com.google.gson.*;
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.otsample.api.resources.Donut;
+import com.otsample.api.resources.DonutAddRequest;
+import com.otsample.api.resources.Status;
+import com.otsample.api.resources.StatusRes;
 import io.opentracing.Span;
 import io.opentracing.contrib.okhttp3.TagWrapper;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 
-import com.otsample.api.resources.*;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class KitchenConsumer {
     OkHttpClient client;

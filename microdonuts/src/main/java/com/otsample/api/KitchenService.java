@@ -1,66 +1,60 @@
 package com.otsample.api;
 
+import com.otsample.api.resources.Donut;
+import com.otsample.api.resources.DonutAddRequest;
+import com.otsample.api.resources.Status;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.otsample.api.resources.*;
-
-public class KitchenService
-{
+public class KitchenService {
     ConcurrentLinkedQueue<Donut> allDonuts;
     ConcurrentLinkedQueue<Donut> fryer;
     Thread fryerThread;
 
-    public void start()
-    {
+    public void start() {
         if (allDonuts != null)
             return;
 
-        allDonuts = new ConcurrentLinkedQueue<Donut>();
-        fryer = new ConcurrentLinkedQueue<Donut>();
+        allDonuts = new ConcurrentLinkedQueue<>();
+        fryer = new ConcurrentLinkedQueue<>();
 
         fryerThread = new Thread(new FryerRunnable(allDonuts, fryer));
         fryerThread.setDaemon(true);
         fryerThread.start();
     }
 
-    public void addDonutAddRequest(DonutAddRequest req)
-    {
+    public void addDonutAddRequest(DonutAddRequest req) {
         fryer.add(new Donut(req.getOrderId()));
     }
 
     public Collection<Donut> getDonuts()
-        throws InterruptedException
-    {
+            throws InterruptedException {
         ArrayList<Donut> donuts = new ArrayList<Donut>();
-        for (Donut donut: allDonuts)
+        for (Donut donut : allDonuts)
             donuts.add(donut.clone()); // Get a snapshot
 
         return donuts;
     }
 
-    static final class FryerRunnable implements Runnable
-    {
+    static final class FryerRunnable implements Runnable {
         ConcurrentLinkedQueue<Donut> allDonuts;
         ConcurrentLinkedQueue<Donut> fryer;
 
-        public FryerRunnable(ConcurrentLinkedQueue<Donut> allDonuts, ConcurrentLinkedQueue<Donut> fryer)
-        {
+        public FryerRunnable(ConcurrentLinkedQueue<Donut> allDonuts, ConcurrentLinkedQueue<Donut> fryer) {
             this.allDonuts = allDonuts;
             this.fryer = fryer;
         }
 
-        public void run()
-        {
+        public void run() {
             try {
                 runImpl();
             } catch (InterruptedException exc) {
             }
         }
 
-        void runImpl() throws InterruptedException
-        {
+        void runImpl() throws InterruptedException {
             while (true) {
                 Object donut = fryer.poll();
                 if (donut == null) {

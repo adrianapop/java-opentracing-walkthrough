@@ -2,8 +2,7 @@ package com.otsample.api.resources;
 
 import com.google.gson.annotations.SerializedName;
 
-public enum Status
-{
+public enum Status {
     @SerializedName("order")
     NEW_ORDER,
     @SerializedName("received")

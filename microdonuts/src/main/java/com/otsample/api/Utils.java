@@ -1,35 +1,32 @@
 package com.otsample.api;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
 
-import com.google.gson.*;
-import org.apache.commons.io.IOUtils;
-
-public final class Utils
-{
+public final class Utils {
     public static JsonObject readJSONObject(HttpServletRequest req)
-        throws IOException
-    {
+            throws IOException {
         String content = IOUtils.toString(req.getReader());
         JsonParser parser = new JsonParser();
         return parser.parse(content).getAsJsonObject();
     }
 
     public static Object readJSON(HttpServletRequest req, Class klass)
-        throws IOException
-    {
+            throws IOException {
         String content = IOUtils.toString(req.getReader());
         Gson gson = new Gson();
         return gson.fromJson(content, klass);
     }
 
     public static void writeJSON(HttpServletResponse res, Object o)
-        throws IOException
-    {
+            throws IOException {
         Gson gson = new Gson();
         PrintWriter writer = res.getWriter();
         writer.println(gson.toJson(o));
@@ -37,8 +34,7 @@ public final class Utils
     }
 
     public static void writeErrorResponse(HttpServletResponse res)
-        throws IOException
-    {
+            throws IOException {
         PrintWriter writer = res.getWriter();
         writer.println("Error processing request");
         writer.close();
@@ -46,8 +42,7 @@ public final class Utils
         res.setStatus(500);
     }
 
-    public static String toJSON(Object o)
-    {
+    public static String toJSON(Object o) {
         Gson gson = new Gson();
         return gson.toJson(o);
     }
